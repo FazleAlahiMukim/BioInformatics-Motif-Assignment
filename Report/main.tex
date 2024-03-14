@@ -1,0 +1,110 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\title{CSE463 Motif Finding Assignment}
+\author{1505048 - Emran Mostofa \and 1605068 - Abdur Rafi \and 1805065 - Sayeed Hasan Ovi \and 1805083 - Fazle Alahi Mukim \and 1905116 - Md. Sayeeduzzaman}
+
+\begin{document}
+\maketitle
+
+\section*{Introduction}
+
+The goal of our assignment was to explore the domain of motif finding problem. We chose two methods: \textbf{Randomized Motif Search} and \textbf{Gibbs Sampler} to implement ourselves and check the output of our implementation with the ground truth. Also we explored two tools: \textbf{MEME} and \textbf{XSTREME} to further explore the motif finding problem.
+
+\section{Data}
+
+We used the \textbf{JASPAR} database for our assignment. \textbf{JASPAR} is an open access and widely used database of transcription factor (TF) binding profiles. \\
+We used the following datasets:
+\begin{itemize}
+    \item \href{https://jaspar.elixir.no/matrix/MA0003.2/}{MA0003.2}\\
+    $5098$ sequence each of $115$ length
+    \item \href{https://jaspar.elixir.no/matrix/MA0016.1/}{MA0016.1}\\
+    $38$ sequence each of $20$ length
+    \item \href{https://jaspar.elixir.no/matrix/MA0024.2/}{MA0024.2}\\
+    $1059$ sequence each of $111$ length
+\end{itemize}
+The genome sequences are available in \textbf{FASTA} format and their profiles are available as \textbf{PFM}.
+
+\section{Methods}
+
+\subsection{Randomized Motif Search}
+
+Randomized motif searching is a heuristic approach used in bioinformatics for identifying conserved patterns within biological sequences. It involves randomly selecting potential motifs from the input sequences and iteratively refining them to identify the most probable motifs.
+\begin{algorithm}
+\caption{Randomized Motif Search}
+\begin{algorithmic}[1]
+\State Randomly select k-mers from each sequence as initial motifs
+\Repeat
+    \State Construct a profile matrix from the current motifs
+    \For{each k-mer in each sequence}
+        \State Find the most probable k-mer using the profile matrix
+    \EndFor
+    \State Update the motifs with the most probable k-mers
+\Until{no improvement in motif score}
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Gibbs Sampler}
+
+
+The Gibbs sampler is a probabilistic algorithm used in bioinformatics for motif finding. It iteratively samples motif occurrences from the input sequences based on a statistical model.
+\begin{algorithm}
+\caption{Gibbs Sampler}
+\begin{algorithmic}[1]
+\State Randomly select k-mers as initial motifs for each sequence
+\Repeat
+    \For{each sequence}
+        \State Randomly choose a motif in the sequence
+        \State Remove the motif from consideration
+        \State Construct a profile matrix from the remaining motifs
+        \State Sample a new motif from the profile matrix
+        \State Replace the removed motif with the sampled motif
+    \EndFor
+    \State Update the motifs based on the sampled motifs
+\Until{convergence or a maximum number of iterations is reached}
+\end{algorithmic}
+\end{algorithm}
+
+\section{Software}
+We used \textbf{MEME} and \textbf{XSTREME} tool on our dataset to find motif. \textbf{MEME} uses expectation-maximization algorithm to find motifs on a set of sequences. \textbf{XSTREME} uses \textbf{MEME} to find motifs. It also focuses on maximizing the statistical significance of discovered motifs directly during the motif discovery process. It uses extremal optimization to explore the search space and identify motifs that are highly overrepresented in the input sequences.\\
+\textbf{MEME} is enough to discover motifs but if there is need of extra information about motifs, their position in the sequences and their statistical significance then it is better to use \textbf{XSTREME}.
+
+\section{Results}
+
+\subsection{Experiment Configuration}
+We considered variable lengths of motifs. The minimum and maximum length we considered is 6 and 20. Our code runs the algorithm for each of the considered length. To evaluate the motif we used \textbf{consensus score}. As a result shorter length of motifs would have higher score than longer length of motifs. To choose the best length we used a heuristic that if we increase the size of the motif by one and the new alphabet matches at least $ 30\% $ of the newly added alphabets then we increase the length by one, otherwise we do not increase the length and the current considered length is the best possible length. As there are random elements in the algorithm, our code runs the algorithm multiple times to get the best scoring motif.
+
+\subsection{Comparison}
+\begin{itemize}
+    \item MA0003.2\\
+    True Motif: \textbf{\MakeUppercase{cattgcctcagggca}}\\
+    Motif(RMS): \textbf{\MakeUppercase{tgcctcagggca}}   \quad Runtime: 1146 sec\\
+    Motif(GS) : \textbf{\MakeUppercase{gccccaggggc}}    \quad Runtime: 3744 sec\\
+    Motif(MEME): \textbf{ATTGCCTCAGGGCA}    \quad Runtime: 246 sec
+    \item MA0016.1\\
+    True Motif: \textbf{\MakeUppercase{ggggtcacgg}}\\
+    Motif(RMS): \textbf{\MakeUppercase{ggggtcacgg}} \quad Runtime: 0.46 sec\\
+    Motif(GS) : \textbf{\MakeUppercase{ggggtcacgg}} \quad Runtime: 26 sec\\
+    Motif(MEME): \textbf{GGGGTCAC}  \quad Runtime: 0.28 sec\\
+    \item MA0024.2\\
+    True Motif: \textbf{\MakeUppercase{cgggcgggagg}}\\
+    Motif(RMS): \textbf{\MakeUppercase{ggcgggagcgcgggcgggg}}   \quad Runtime: 258 sec\\
+    Motif(GS) : \textbf{\MakeUppercase{gcgcgggggcgggggcggg}}    \quad Runtime: 782 sec\\
+    Motif(MEME): \textbf{GGGCGGGAAGG}   \quad Runtime: 333 sec
+\end{itemize}
+
+\section{Conclusion}
+We can see that in the first and third dataset \textbf{MEME} has performed much better than our algorithm and it is much faster too. But interestingly in the second dataset \textbf{MEME} has come up short on the length of the Motif whereas our algorithm has correctly found out the Motif.\\
+The second dataset has only 38 sequence of shorter length. We can confer that our heuristic is only applicable in short lengths of sequences. To find motifs in much longer lengths we have to explore other heuristics such as expectation-maximization algorithm which is used by \textbf{MEME}.\\
+Also \textbf{Gibbs Sampler} has performed worst in every aspect, so there is no reason to use this algorithm.
+
+\end{document}
